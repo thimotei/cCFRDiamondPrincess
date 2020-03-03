@@ -83,7 +83,7 @@ knitr::include_graphics("../plots/figure_1.png")
 *Table 2: \ageStratAsymptomatic Age stratified data of symptomatic and asymptomatic cases on-board the Diamond Princess [@DiamondPrincessFieldBriefing1], [@DiamondPrincessFieldBriefing2], along with the naive CFR estimates given by the cCDC (ref?) and the expected number of cases in each age group if the nCFR estimates were correct where the total number of expected deaths under these estimates was 15.15.*
 
 
-### Adjusted age stratified CFR estimates
+### Adjusted age stratified severity estimates
 
 Using the Chinese CDC age stratified CFR estimates (ref), we calculate the expected number of deaths on-board the Diamond Princess within each age group. This results in a total of 15.15 expected deaths, which gives a CFR estimate (15.15/301) = 5% (Table 2). Given that our corrected CFR estimates are 2.3%, we arrive at an scaling of 46% between the two estimates. Using this scaling, we are then able to adjust the China CDC age stratified severity estimates. Doing so results in the following proportion estimates: symptomatic cases that were severe is 6.9% (2.2% - 15.8%), symptomatic cases that were critical is 2.3% (0.8% - 5.3%), total hospitalisation is 9.1% (3.0% - 21.1%), the adjusted overall CFR is 1.1% (0.3% - 2.4%) and the adjusted overall IFR is 0.5% (0.2% - 1.2%). The confidence intervals are calculated by scaling the 95% confidence intervals given in the corrected CFR and IFR estimates.
 
@@ -107,7 +107,7 @@ In doing so, we arrive at age stratified CFR results for China (Table 3)
 |           |                  |              |             | 
 | Totals    | 301              | 318          | 49%         | 
 
-*Table 3: \adjustedData Age stratified data of symptomatic and asymptomatic cases on-board the Diamond Princess [@DiamondPrincessFieldBriefing1], [@DiamondPrincessFieldBriefing2], along with the naive CFR estimates given by the cCDC (ref?) and the expected number of cases in each age group if the nCFR estimates were correct where the total number of expected deaths under these estimates was 15.15.*
+*Table 3: \adjustedData Age stratified data of different severity levels of cases on-board the Diamond Princess [@DiamondPrincessFieldBriefing1], [@DiamondPrincessFieldBriefing2], estimated by adjusting the China CDC severity estimates (ref) by rescaling their estimaes by the difference in our two CFR estimates.*
 
 
 Case fatality estimates are notoriously difficult during an ongoing epidemic. Especially one with attributes similar to the one of COVID-19, given that it has long delays between onset and hospitalisation-to-death and depends strongly on age and comorbidity of the individual. Two of the largest sources of bias within such a calculation are level of under/over reporting of cases and the difference in cases between now and when the current cases have had their outcomes resolved. We use a statistical correction method to adjust the estimates to account for the increase in known outcomes between the current case count and the current death count. Furthermore, we do so on a dataset which inherently has far lower reporting error, given its special circumstances, i.e. every individual was tested and the test has high levels of sensitivity.
