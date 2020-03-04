@@ -61,7 +61,7 @@ output_cfr_timeseries <- function(main_data_in, delay_fun){
   
   # Load data and omit initial missing entries
   data_1 <- main_data_in[!is.na(main_data_in$new_cases),] 
-  data_1 <- data_1 %>% mutate(new_cases = scaled_reporting*new_cases,
+  data_1 <- data_1 %>% mutate(new_cases = new_cases,
                               new_deaths = new_deaths) # scale up based on exported case estimates
   
   # Calculate adjusted CFR

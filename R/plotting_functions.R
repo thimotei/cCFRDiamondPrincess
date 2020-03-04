@@ -22,22 +22,21 @@ master_plot <- function(data_in,
   
   layout(matrix(c(1, 2,
                   3, 3,
-                  4, 4,
-                  5, 5),
-                nrow=4, byrow=TRUE))  
+                  4, 4),
+                nrow=3, byrow=TRUE))  
   
   par(oma = c(1,1,1,1) + 0.5,
       mar = c(0,0,1,1) + 0.1)
 
   
-  cCFRTimeSeriesOutput <- computecCFRTimeSeries(data_in, delay_dist)
+  #cCFRTimeSeriesOutput <- computecCFRTimeSeries(data_in, delay_dist)
   
-  IFRFigures <-  cCFRTimeSeriesOutput[,-1]*301/619
-  cIFRTimeSeriesOutput <- data.frame(date = cCFRTimeSeriesOutput$date)
-  cIFRTimeSeriesOutput <- cbind(cIFRTimeSeriesOutput, IFRFigures)
+  #IFRFigures <-  cCFRTimeSeriesOutput[,-1]*301/619
+  #cIFRTimeSeriesOutput <- data.frame(date = cCFRTimeSeriesOutput$date)
+  #cIFRTimeSeriesOutput <- cbind(cIFRTimeSeriesOutput, IFRFigures)
 
   plotDelays()
-  subPlt1 <- plotCFRTimeSeries(cIFRTimeSeriesOutput, cCFRTimeSeriesOutput, startIntCFR, legendPosition)
+  #subPlt1 <- plotCFRTimeSeries(cIFRTimeSeriesOutput, cCFRTimeSeriesOutput, startIntCFR, legendPosition)
   subPlt2 <- plotCaseIncidence(data_in, startIntCD)
   subPlt3 <- plotDeathIncidence(data_in, startIntCD)
   
@@ -55,13 +54,13 @@ plotDelays <- function()
   samplingFromDelayDistDays <- onset_to_death(xSamplesDays)
   samplingFromDelayDistCurve <- onset_to_death(xSamplesCurve)
   plot(xSamplesDays, samplingFromDelayDistDays, 
-       xlab = "Days after confirmation",
+       xlab = "Days after hospitalisation",
        pch = 19, 
        ylab = "P(death on a given day | death)",
-       cex.lab = 2,
+       cex.lab = 1.8,
        cex.axis = 1.5)
   lines(xSamplesCurve, samplingFromDelayDistCurve)
-  mtext(LETTERS[1], adj = 0, line = 1, cex = 1.5) 
+  mtext(LETTERS[1], adj = 0, line = 1, cex = 1.4) 
   
   par(mar = c(3,4,1,1),mgp = c(2,0.6,0))
   xSamplesDays <- seq(0,40, 1)
@@ -69,13 +68,13 @@ plotDelays <- function()
   samplingFromDelayDistDays <- onset_to_death_truncated(xSamplesDays)
   samplingFromDelayDistCurve <- onset_to_death_truncated(xSamplesCurve)
   plot(xSamplesDays, samplingFromDelayDistDays, 
-       xlab = "Days after confirmation",
+       xlab = "Days after hospitalisation",
        pch = 19, 
        ylab = "",
-       cex.lab = 2,
+       cex.lab = 1.8,
        cex.axis = 1.5)
   lines(xSamplesCurve, samplingFromDelayDistCurve)
-  mtext(LETTERS[2], adj = 0, line = 1, cex = 1.5) 
+  mtext(LETTERS[2], adj = 0, line = 1, cex = 1.4) 
   
 }
 
@@ -112,14 +111,14 @@ plotCFRTimeSeries <- function(ncfr_data_in,
          xlab = "", 
          ylab = "",
          ylim = c(ylimMin,ylimMax),
-         cex.lab = 2,
-         cex.axis = 1.8)
+         cex.lab = 1.8,
+         cex.axis = 1.5)
   lines(x = ncfr_data_in$date[startIntCFR:endInt], 
         ncfr_data_in$ci_mid[startIntCFR:endInt],
         col = col2)
   grid(ny = NULL, nx = 0, col = rgb(0.9,0.9,0.9), lty = "solid")
   par(xpd=TRUE)
-  #text(ncfr_data_in$date[startInt] + 0.6 , 3.8, "A", cex = 1.5)
+  #text(ncfr_data_in$date[startInt] + 0.6 , 3.8, "A", cex = 1.2)
   
   par(new=T)
   
@@ -134,13 +133,13 @@ plotCFRTimeSeries <- function(ncfr_data_in,
          xlab = "",
          ylab = "CFR (%)",
          ylim = c(ylimMin,ylimMax),
-         cex.lab = 2,
-         cex.axis = 1.8)
+         cex.lab = 1.8,
+         cex.axis = 1.5)
   lines(x = ccfr_data_in$date[startIntCFR:endInt], 
         ccfr_data_in$ci_mid[startIntCFR:endInt], col = col3)
   legend(legendPosition, legend=c("corrected IFR", "corrected CFR"),
-         col=c(col2, col3), lty = 1:1, cex = 1.5)
-  mtext(LETTERS[3], adj = 0, line = 1, cex = 1.5) 
+         col=c(col2, col3), lty = 1:1, cex = 1.2)
+  mtext(LETTERS[3], adj = 0, line = 1, cex = 1.2) 
 }
 
 
@@ -152,16 +151,16 @@ plotCaseIncidence <- function(data_in_raw, startIntCD)
        data_in_raw$new_cases[startIntCD:endInt],
        xlab = "",
        ylab = "Daily confirmed cases",
-       cex.lab = 2,
-       cex.axis = 1.8)
+       cex.lab = 1.8,
+       cex.axis = 1.5)
   lines(x = data_in_raw$date[startIntCD:endInt], data_in_raw$new_cases[startIntCD:endInt], col = col5)
   par(mar=c(3,4,1,1),mgp=c(2,0.6,0))
   #par(oma = c(4, 4, 0, 0)) # make room (i.e. the 4's) for the overall x and y axis titles
   #par(mar = c(2, 2, 1, 1)) # make the plots be closer together
   grid(ny = NULL, nx = 0, col = rgb(0.9,0.9,0.9), lty = "solid")
   par(xpd=TRUE)
-  mtext(LETTERS[4], adj = 0, line = 1, cex = 1.5) 
-  #text(data_in_raw$date[1] + 1 , 115, "C", cex = 1.5)
+  mtext(LETTERS[3], adj = 0, line = 1, cex = 1.2) 
+  #text(data_in_raw$date[1] + 1 , 115, "C", cex = 1.2)
   
 }
 
@@ -173,14 +172,13 @@ plotDeathIncidence <- function(data_in_raw, startIntCD)
        data_in_raw$new_deaths[startIntCD:endInt],
        xlab = "Date",
        ylab = "Daily deaths",
-       cex.lab = 2,
-       cex.axis = 1.8,
-       yaxp = c(0, 2, 2), 
-       tick.ratio = 2)
+       cex.lab = 1.8,
+       cex.axis = 1.5,
+       yaxp = c(0, 2, 2))
   lines(x = data_in_raw$date[startIntCD:endInt], data_in_raw$new_deaths[startIntCD:endInt], col = col6)
   par(xpd=TRUE)
-  mtext(LETTERS[5], adj = 0, line = 1, cex = 1.5) 
-  #text(data_in_raw$date[1] + 1 , 1.95, "D", cex = 1.5)
+  mtext(LETTERS[4], adj = 0, line = 1, cex = 1.2) 
+  #text(data_in_raw$date[1] + 1 , 1.95, "D", cex = 1.2)
   
 }
 

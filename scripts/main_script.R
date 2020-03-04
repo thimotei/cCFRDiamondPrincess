@@ -1,17 +1,18 @@
 library(bbmle)
 library(plotrix)
 library(fitdistrplus)
+library(padr)
 
 source("R/cCFR_calculation.R")
 
 
 #importing case and death data
-cruise_ship_by_confmation <- read.csv("data/cruise_ship_data/cruise_ship_diamond_princess_by_confirmation.csv")
+cruise_ship_by_confirmation <- read.csv("data/cruise_ship_diamond_princess_by_confirmation.csv")
 
 # importing the age-stratified scale factors
-cruise_ship_SFs <- read.csv("data/cruise_ship_data/age_scale_factors.csv")
+cruise_ship_SFs <- read.csv("data/age_scale_factors.csv")
 
-cruise_ship_by_confmation$date <- as.Date(cruise_ship_by_confmation$date)
+cruise_ship_by_confirmation$date <- as.Date(cruise_ship_by_confirmation$date)
 
 # age distribution of cruise ship individuals 
 cruise_ship_ages <- c(16,23,347, 428,334,398,923,1015,216,11)
@@ -70,7 +71,7 @@ hospitalisation_to_death_truncated <- function(x)
 
 
 source("R/plotting_functions.R")
-master_plot(cruise_ship_by_confmation, 1, 16, "topright", hospitalisation_to_death_truncated)
+master_plot(cruise_ship_by_confirmation, 1, 1, "topright", hospitalisation_to_death_truncated)
 
 
 
