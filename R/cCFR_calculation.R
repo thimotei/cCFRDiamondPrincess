@@ -27,8 +27,6 @@ bin_conf <- function(x,n){
 
 scale_cfr <- function(data_1_in, delay_fun){
   
-  # DEBUG   data_1_in <- data_1[1:tt,]
-  
   case_incidence <- data_1_in$new_cases
   death_incidence <- data_1_in$new_deaths
   cumulative_known_t <- 0 # cumulative cases with known outcome at time tt
@@ -76,31 +74,39 @@ output_cfr_timeseries <- function(main_data_in, delay_fun){
   return(store_cfr)
 }
 
-
-calculate_CIs_nCFR <- function(data_1)
+# function to calculate the CI's using a binomial test
+calculate_CIs_nCFR <- function(data_1, delay_dist)
 {
   
-  CI_nCFR_raw_mid<- NA
-  CI_nCFR_raw_low<- NA
-  CI_nCFR_raw_high<- NA
+  CI_nCFR_raw_mid <- NA
+  CI_nCFR_raw_low <- NA
+  CI_nCFR_raw_high <- NA
   
   for(i in 1:nrow(data_1))
   {
-    
-    CI_nCFR_raw_mid[i] <- signif(bin_conf(data_1[i,]$deaths,data_1[i,]$cases)[1]*100, 3)
-    CI_nCFR_raw_low[i] <- signif(bin_conf(data_1[i,]$deaths,data_1[i,]$cases)[2]*100, 3)
-    CI_nCFR_raw_high[i] <- signif(bin_conf(data_1[i,]$deaths,data_1[i,]$cases)[3]*100)
-
+    if(data_1[i,]$cases >= data_1[i,]$deaths)
+    {
+      CI_nCFR_raw_mid[i]  <- signif(bin_conf(data_1[i,]$deaths, data_1[i,]$cases)[1]*100, 3)
+      CI_nCFR_raw_low[i]  <- signif(bin_conf(data_1[i,]$deaths, data_1[i,]$cases)[2]*100, 3)
+      CI_nCFR_raw_high[i] <- signif(bin_conf(data_1[i,]$deaths, data_1[i,]$cases)[3]*100, 3)
+    }
+    else if(data_1[i,]$cases < data_1[i,]$deaths)
+    {
+      CI_nCFR_raw_mid[i]  <- signif(bin_conf(data_1[i,]$cases, data_1[i,]$deaths)[1]*100, 3)
+      CI_nCFR_raw_low[i]  <- signif(bin_conf(data_1[i,]$casesdeaths)[2]*100, 3)
+      CI_nCFR_raw_high[i] <- signif(bin_conf(data_1[i,]$cases, data_1[i,]$deaths)[3]*100, 3)
+    }
   }
   
-  output_CIs <-  data.frame(date = data_1$date, 
+  output_CIs <-  data.frame(date = data_1$date,
                             ci_mid = CI_nCFR_raw_mid,
                             ci_low = CI_nCFR_raw_low, 
                             ci_high = CI_nCFR_raw_high)
   return(output_CIs)
+  
 }
 
-
+# function to calculate the CI's using a binomial test
 calculate_CIs_cCFR <- function(data_1, delay_dist)
 {
   
@@ -132,6 +138,8 @@ calculate_CIs_cCFR <- function(data_1, delay_dist)
    
 }
 
+
+# function to calculate the timeseries of CFR values with CIs
 nCFR_with_CIs_main_time_series <- function(data_1, delay_dist)
 {
   
@@ -151,7 +159,7 @@ nCFR_with_CIs_main_time_series <- function(data_1, delay_dist)
   
 }
 
-
+# function to calculate the timeseries of CFR values with CIs
 cCFR_with_CIs_main_time_series <- function(data_1, delay_dist)
 {
   
@@ -172,6 +180,7 @@ cCFR_with_CIs_main_time_series <- function(data_1, delay_dist)
   
 }
 
+# function to calculate the timeseries of CFR values with CIs that allows for different numbers of known outcomes and deaths
 computenCFRTimeSeries <- function(data_in, delay_dist)
 {
   
@@ -194,7 +203,7 @@ computecCFRTimeSeries <- function(data_in,  delay_dist)
 }
 
 
-
+# scaling cases by the age distribution data 
 scale_by_age_distribution_cases <- function(data_1, sf_data)
 {
   
@@ -208,7 +217,7 @@ scale_by_age_distribution_cases <- function(data_1, sf_data)
   return(data_1_scaled_cases)
 }
 
-
+# scaling deaths by the age distribution data 
 scale_by_age_distribution_deaths <- function(data_1, sf_data)
 {
   
