@@ -1,11 +1,4 @@
----
-title: "Estimating the infection and case fatality ratio for COVID-19 using age-adjusted data from the outbreak on the Diamond Princess cruise ship"
-output: 
-  html_document:
-  theme: cosmo
-bibliography: Rmd/resources/library.bib
-csl: Rmd/resources/bmj.csl
----
+# Estimating the infection and case fatality ratio for COVID-19 using age-adjusted data from the outbreak on the Diamond Princess cruise ship
 
 
 *Timothy W Russell<sup>1 ††</sup>, Joel Hellewell<sup>1†</sup>, Christopher I Jarvis<sup>1†</sup>, Kevin Van Zandvoort<sup>1†</sup>, Sam Abbott<sup>1</sup>, Ruwan Ratnayake<sup>1,2</sup>, CMMID COVID-19 working group, Stefan Flasche<sup>1</sup>, Rosalind M Eggo<sup>1</sup>, W John Edmunds<sup>1</sup>, Adam J Kucharski<sup>1</sup>*
@@ -45,11 +38,10 @@ During an outbreak, the so-called naive CFR (nCFR), i.e. the ratio of reported d
 We assumed the delay from confirmation-to-death followed the same distribution as estimated hospitalisation-to-death, based on data from the COVID-19 outbreak in Wuhan, China, between the 17th December 2019 and the 22th January 2020, accounting right-censoring in the data as a result of as-yet-unknown disease outcomes (Figure 1, panels A and B) [6]. As a sensitivity analysis, we also consider raw “non-truncated” distributions, which do not account for censoring; the raw and truncated distributions have a mean of 8.6 days and 13 days respectively.  
 To correct the CFR, we use the case and death incidence data to estimate the number of cases with known outcomes [5]:
 
-$$
-u_{t} = \frac{\sum_{i = 0}^t \sum_{j = 0}^{\infty} c_{i-j} f_j}{\sum_{i = 0}^t c_i},
-$$ 
+(see rmd/diamond_princess_cfr_estimates for the LaTeX equation)
 
-where $c_{t}$ is the daily case incidence at time, $t$, $f_t$ is the proportion of cases with delay between onset or hospitalisation and death. $u_t$ represents the underestimation of the known outcomes [5] and is used to scale the value of the cumulative number of cases in the denominator in the calculation of the cCFR. Finally, we used the measured proportions of asymptomatic to symptomatic cases on the Diamond Princess to scale the corrected CFR (cCFR) to estimate the infection fatality ratio (IFR).
+
+where ct is the daily case incidence at time, t, ft is the proportion of cases with delay between onset or hospitalisation and death. u represents the underestimation of the known outcomes [5] and is used to scale the value of the cumulative number of cases in the denominator in the calculation of the cCFR. Finally, we used the measured proportions of asymptomatic to symptomatic cases on the Diamond Princess to scale the corrected CFR (cCFR) to estimate the infection fatality ratio (IFR).
  
 ## Corrected IFR and CFR estimates
 
@@ -58,7 +50,7 @@ We estimated that the all-age cIFR on the Diamond Princess was 1.2% (0.38–2.7%
 Using the age-stratified nCFR estimates reported in a large study in China [7], we then calculated the expected number of deaths of people who were onboard the ship in each age group, assuming this nCFR estimate was accurate. This produced a total of 15.15 expected deaths, which gives a nCFR estimate of 5% (15.15/301) for Diamond Princess (Table 2), which falls within the top end of our 95% CI. As our corrected cCFR for Diamond Princess was 2.3% (0.75% - 5.3%), this suggests we need to multiply the nCFR estimates in China [7] by a factor 46% (95% CI: 15–105%) to obtain the correct value. As the raw overall nCFR reported in the China data was 2.3% [7], this suggests the cCFR in China during that period was 1.1% (95% CI: 0.3-2.4%) and the IFR was 0.5% (95% CI: 0.2-1.2%). Based on cases and deaths reported in China up to 4th March 2020, nCFR = 2984/80422*100 = 3.71% (95% CI 3.58% - 3.84%); this naive value is significantly higher than the corrected CFR we estimate here.
 
 | Age Range |	cIFR | cCFR | Hospitalisation-to-death Distribution |
-| -----------   | ----------- | -----------  | ----------- | ----------- |
+| -----------   | ----------- | -----------  | ----------- |
 | All ages combined |	0.91% (0.11% - 4.3%) |	1.9% (0.60% - 4.3%) |	Non-truncated (Figure 1A) |
 | | 1.2% (0.39% - 2.7%)	| 2.3% (0.75% - 5.3%) |	Truncated (Figure 1B) |
 | 70+	 |  7.3% (3.0% - 14%)	|  14% (6.0% - 27%)	|  Non-truncated (Figure 1A) |
@@ -66,11 +58,7 @@ Using the age-stratified nCFR estimates reported in a large study in China [7], 
  
 *Table 1: cIFR and cCFR estimates calculated using the reported case and death data on the Diamond Princess cruise ship [2]. Correction was performed using equation (1) and the hospitalisation-to-death distribution in [6]. *
 
-
-```{r fig_Main, echo=FALSE, fig.align='center', fig.cap="_Figure 1: The time-to-death distributions and case and death data used to calculate the cCFR estimates. Panel A: the delay distributions of hospitalisation-to-death; both are lognormal distributions fitted and reported in Linton et al. using data from the outbreak in Wuhan, China. The non-truncated distribution has a mean of 8.6 days and SD of 6.7 days; the right-truncated distribution has a mean of 13 days and SD of 12.7 days. Panels B and C: the case and death timeseries (respectively) of passengers onboard the ship._", out.width = '80%'}
-knitr::include_graphics("plots/figure_1.png")
-```
-
+(see rmd/diamond_princess_cfr_estimates for Figure 1)
  
 | Age Range	 | No. of passengers |	Symp. cases	| Asymp. cases | 	nCFR | Expected deaths using nCFR |	Observed deaths on cruise ship |
 | -----------   | ----------- | -----------  | ----------- | ----------- | ----------- | ----------- |
