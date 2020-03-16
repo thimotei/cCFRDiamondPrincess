@@ -41,32 +41,25 @@ plotDelays <- function()
   
   par(mar=c(4,4,1,1),
       mgp=c(2,0.6,0))
-  xSamplesDays <- seq(0,40, 1)
-  xSamplesCurve <- seq(0,40, 0.1)
-  samplingFromDelayDistDays <- hospitalisation_to_death(xSamplesDays)
-  samplingFromDelayDistCurve <- hospitalisation_to_death(xSamplesCurve)
-  plot(xSamplesDays, samplingFromDelayDistDays, 
-       xlab = "Days after hospitalisation",
-       pch = 19, 
-       ylab = "P(death on a given day | death)",
-       cex.lab = 1.8,
-       cex.axis = 1.5)
-  lines(xSamplesCurve, samplingFromDelayDistCurve, col = col1)
 
-  xSamplesDays <- seq(0,40, 1)
-  xSamplesCurve <- seq(0,40, 0.1)
+  x_max <- 40
+  xSamplesDays <- seq(0,1000, 1)
+  xSamplesCurve <- seq(0,1000, 0.01)
   samplingFromDelayDistDays <- hospitalisation_to_death_truncated(xSamplesDays)
   samplingFromDelayDistCurve <- hospitalisation_to_death_truncated(xSamplesCurve)
-  points(xSamplesDays, samplingFromDelayDistDays, 
+  plot(xSamplesCurve[0:4000], samplingFromDelayDistCurve[0:4000], 
        xlab = "Days after hospitalisation",
+       ylab = "P(death on a given day | death)",
        pch = 19, 
-       ylab = "",
        cex.lab = 1.8,
-       cex.axis = 1.5)
-  lines(xSamplesCurve, samplingFromDelayDistCurve, col = col2)
+       cex.axis = 1.5,
+       type = "l")
+  polygon(xSamplesCurve,samplingFromDelayDistCurve,col='skyblue')
+  
+    #lines(xSamplesCurve, samplingFromDelayDistCurve, col = col2)
   mtext(LETTERS[1], adj = 0, line = 1, cex = 1.4) 
-  legend("topright", legend=c("Non-truncated", "Truncated"),
-         col=c(col1, col2), lty = 1:1, cex = 1.2)
+  # legend("topright", legend=c("Non-truncated", "Truncated"),
+  #        col=c(col1, col2), lty = 1:1, cex = 1.2)
   
 }
 
@@ -107,3 +100,44 @@ plotDeathIncidence <- function(data_in_raw, startIntCD)
   mtext(LETTERS[3], adj = 0, line = 1, cex = 1.4) 
   
 }
+
+plotDelaysSupplementary <- function()
+{
+  dev.off()
+  par(mar=c(4,4,1,1),
+      mgp=c(2,0.6,0))
+  
+  x_max <- 40
+  xSamplesDays <- seq(0,1000, 1)
+  xSamplesCurve <- seq(0,1000, 0.01)
+  samplingFromDelayDistDays <- hospitalisation_to_death(xSamplesDays)
+  samplingFromDelayDistCurve <- hospitalisation_to_death(xSamplesCurve)
+  plot(xSamplesCurve[0:4000], samplingFromDelayDistCurve[0:4000], 
+       xlab = "Days after hospitalisation",
+       ylab = "P(death on a given day | death)",
+       pch = 19, 
+       cex.lab = 1.3,
+       cex.axis = 1.3,
+       type = "l")
+  polygon(xSamplesCurve,samplingFromDelayDistCurve,col=rgb(0.529,0.808,0.922,0.5))
+  
+  x_max <- 40
+  xSamplesDays <- seq(0,1000, 1)
+  xSamplesCurve <- seq(0,1000, 0.01)
+  samplingFromDelayDistDays <- hospitalisation_to_death_truncated(xSamplesDays)
+  samplingFromDelayDistCurve <- hospitalisation_to_death_truncated(xSamplesCurve)
+  lines(xSamplesCurve[0:4000], samplingFromDelayDistCurve[0:4000], 
+       xlab = "",
+       ylab = "",
+       pch = 19, 
+       cex.lab = 1.3,
+       cex.axis = 1.3,
+       type = "l")
+  polygon(xSamplesCurve,samplingFromDelayDistCurve,col=rgb(1,0.6,0,0.5))
+  
+   legend("topright", legend=c("Non-truncated", "Truncated"),
+          col=c(rgb(0.529,0.808,0.922,0.5), rgb(1,0.6,0,0.5)), lty = 1:1, cex = 1.2)
+  
+}
+
+

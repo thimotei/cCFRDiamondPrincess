@@ -6,6 +6,13 @@ library(padr)
 source("R/cCFR_calculation.R")
 
 
+#library(magrittr)
+#library(tidyverse)
+
+cruiseShipData <- read.csv("data/new_data.csv")
+cruiseShipData <- cruiseShipData %>% arrange(date)
+cruiseShipData$date <- as.Date(cruiseShipData$date)
+
 #importing case and death data
 cruise_ship_by_confirmation <- read.csv("data/cruise_ship_diamond_princess_by_confirmation.csv")
 
@@ -22,68 +29,163 @@ cruise_ship_ages <- c(16,23,347, 428,334,398,923,1015,216,11)
 # Reproducing the distribution from onset-to-death
 # Linton et al. (https://doi.org/10.3390/jcm9020538)
 
-zmean <- 14.5
-zsd <- 6.7
-zmedian <- 13.2
-muOD <- log(zmedian)
-sigmaOD <- sqrt( 2*(log(zmean) - muOD) )
+zmeanOD <- 14.5
+zsdOD <- 6.7
+zmedianOD <- 13.2
+muOD <- log(zmedianOD)
+sigmaOD <- sqrt(2*(log(zmeanOD) - muOD))
 
 onset_to_death <- function(x)
 {
   dlnorm(x, muOD, sigmaOD)
 }
 
-zmean <- 20.2
-zsd <- 11.6
-zmedian <- 17.1
-muODT <- log(zmedian)
-sigmaODT <- sqrt( 2*(log(zmean) - muODT) )
+zmeanODT <- 20.2
+zsdODT <- 11.6
+zmedianODT <- 17.1
+muODT <- log(zmedianODT)
+sigmaODT <- sqrt( 2*(log(zmeanODT) - muODT))
 
 onset_to_death_truncated <- function(x)
 {
   dlnorm(x, muODT, sigmaODT)
 }
 
-
-# Estimating distribution from hospitalisation-to-death
-# Linton et al. (https://doi.org/10.3390/jcm9020538)
-
-zmean <- 8.6
-zsd <- 6.7
-zmedian <- 6.7
-muHD <- log(zmedian)
-sigmaHD <- sqrt( 2*(log(zmean) - muHD) )
+zmeanHD <- 8.6
+zmeanLow <- 6.8
+zmeanHigh <- 10.8
+zsdHD <- 6.7
+zmedianHD <- 6.7
+zmedianHDLow <- 5.3
+zmedianHDHigh <- 8.3
+muHD <- log(zmedianHD)
+sigmaHD <- sqrt(2*(log(zmeanHD) - muHD))
 
 hospitalisation_to_death <- function(x)
 {
   dlnorm(x, muHD, sigmaHD)
 }
 
-zmean <- 13
-zsd <- 12.7
-zmedian <- 9.1
-muHDT <- log(zmedian)
-sigmaHDT <- sqrt( 2*(log(zmean) - muHDT) )
+zmeanHDT <- 13
+zmeanHDTLow <- 8.7
+zmeanHDTHigh <- 20.9
+zsdHDT <- 12.7
+zmedianHDT <- 9.1
+zmedianHDTLow <- 6.7
+zmedianHDTHigh <- 13.7
+muHDT <- log(zmedianHDT)
+sigmaHDT <- sqrt(2*(log(zmeanHDT) - muHDT))
 
 hospitalisation_to_death_truncated <- function(x)
+  
 {
   dlnorm(x, muHDT, sigmaHDT)
 }
 
 
+f_truncrated <- numeric()
+for(i in 0:50)
+{
+  f_truncrated[i+1] <- integrate(hospitalisation_to_death_truncated, i-1, i)
+}
+
+f_truncrated_low <- numeric()
+for(i in 0:50)
+{
+  f_truncrated_low[i+1] <- integrate(hospitalisation_to_death_truncated_low, i-1, i)
+}
+
+
+f_truncrated_mid_one <- numeric()
+for(i in 0:50)
+{
+  f_truncrated_mid_one[i+1] <- integrate(hospitalisation_to_death_truncated_mid_one, i-1, i)
+}
+
+
+f_truncrated_high <- numeric()
+for(i in 0:50)
+{
+  f_truncrated_high[i+1] <- integrate(hospitalisation_to_death_truncated_high, i-1, i)
+}
+
+
+
+nLarge <- 10
+for(i in 1:nLarge)
+{
+  
+  zmeanHDTBS <- runif(1, zmeanHDTLow, zmeanHDTHigh)
+  zmedianHDTBS <- runif(1, zmedianHDTLow, zmedianHDTHigh)
+  
+  hospitalisation_to_death_truncatedBS <- function(x)
+    
+  {
+    dlnorm(x, muHDT, sigmaHDT)
+  }
+ 
+  fBS <- numeric()
+  for(i in 0:50)
+  {
+    fBS[i + 1] <- integrate(hospitalisation_to_death_truncated, i - 1, i)
+  }
+   
+}
+
+
+muHDTLow <- log(zmedianHDTLow)
+sigmaHDTLow <- sqrt(2*(log(zmeanHDTLow) - muHDTLow))
+
+hospitalisation_to_death_truncated_low <- function(x)
+  
+{
+  dlnorm(x, muHDTLow, sigmaHDTLow)
+}
+
+
+muHDTMidOne <- log(zmedianHDTLow)
+sigmaHDTMidOne <- sqrt(2*(log(zmeanHDTHigh) - muHDTMidOne))
+
+hospitalisation_to_death_truncated_mid_one <- function(x)
+  
+{
+  dlnorm(x, muHDTMidOne, sigmaHDTMidOne)
+}
+
+
+#muHDTMidTwo <- log(zmedianHDTHigh)
+#sigmaHDTMidTwo <- sqrt(2*(log(zmeanHDTLow) - muHDTMidTwo))
+
+#hospitalisation_to_death_truncated_mid_two <- function(x)
+  
+#{
+#  dlnorm(x, muHDTMidTwo, sigmaHDTMidTwo)
+#}
+
+muHDTHigh <- log(zmedianHDTHigh)
+sigmaHDTHigh <- sqrt(2*(log(zmeanHDTHigh) - muHDTHigh))
+
+hospitalisation_to_death_truncated_high <- function(x)
+  
+{
+  dlnorm(x,muHDTHigh, sigmaHDTHigh)
+}
+
+
+
+
 source("R/plotting_functions.R")
+source("R/cCFR_calculation.R")
 
 # running the script for plotting Figure 1 in the main text
-master_plot(cruise_ship_by_confirmation, 1, 1, "topright", hospitalisation_to_death_truncated)
-
-
-
+master_plot(cruiseShipData, 1, 1, "topright", hospitalisation_to_death_truncated)
+figure_supplementary <- plotDelaysSupplementary()
 
 # running the code to produce the IFR and CFR estimates quoted in the manuscript
-cCFREstimate <- computecCFRTimeSeries(cruise_ship_by_confirmation, hospitalisation_to_death)
-cIFREstimate <- data.frame(date = cCFREstimate$date, ci_mid = cCFREstimate$ci_mid*sfIFR[1], ci_low = cCFREstimate$ci_low*sfIFR[1], ci_high = cCFREstimate$ci_high*sfIFR[1])
+cIFREstimate <- computecCFRTimeSeries(cruise_ship_by_confirmation, hospitalisation_to_death_truncated_mid_one, f_truncrated_mid_one)
+cCFREstimate <- data.frame(date = cCFREstimate$date, ci_mid = cCFREstimate$ci_mid*sfIFR[1], ci_low = cCFREstimate$ci_low*sfIFR[1], ci_high = cCFREstimate$ci_high*sfIFR[1])
 
-cases_scaled_by_age <- scale_by_age_distribution_cases(cruise_ship_by_confirmation, cruise_ship_SFs)
+cases_scaled_by_age <- scale_by_age_distribution_cases(cruise_ship_by_confirmation, cruise_ship_SFs, f_truncated)
 deaths_scaled_by_age <- scale_by_age_distribution_deaths(cruise_ship_by_confirmation, cruise_ship_SFs)
 
 ageGroupStratified <- data.frame(date = cruise_ship_by_confirmation$date, new_cases = round(cases_scaled_by_age[,9]), new_deaths = round(deaths_scaled_by_age[,9]))
