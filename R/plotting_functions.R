@@ -26,7 +26,7 @@ master_plot <- function(data_in,
   par(oma = c(1,1,1,1) + 0.5,
       mar = c(0,0,1,1) + 0.1)
 
-  plotDelays()
+  plotDelays(delay_dist)
 
   subPlt2 <- plotCaseIncidence(data_in, startIntCD)
   subPlt3 <- plotDeathIncidence(data_in, startIntCD)
@@ -36,17 +36,17 @@ master_plot <- function(data_in,
 
 
 #plotting function to plot the delay distributions
-plotDelays <- function()
+plotDelays <- function(delay_dist)
 {
   
   par(mar=c(4,4,1,1),
       mgp=c(2,0.6,0))
 
-  x_max <- 40
+  x_max <- 30
   xSamplesDays <- seq(0,1000, 1)
   xSamplesCurve <- seq(0,1000, 0.01)
-  samplingFromDelayDistDays <- hospitalisation_to_death_truncated(xSamplesDays)
-  samplingFromDelayDistCurve <- hospitalisation_to_death_truncated(xSamplesCurve)
+  samplingFromDelayDistDays <- delay_dist(xSamplesDays)
+  samplingFromDelayDistCurve <- delay_dist(xSamplesCurve)
   plot(xSamplesCurve[0:4000], samplingFromDelayDistCurve[0:4000], 
        xlab = "Days after hospitalisation",
        ylab = "P(death on a given day | death)",
@@ -68,10 +68,10 @@ plotCaseIncidence <- function(data_in_raw, startIntCD)
 {
 
   par(mar = c(4,4,1,1))
-  barplot(cruise_ship_by_confirmation$new_cases,
-          names.arg=cruise_ship_by_confirmation$date,
+  barplot(data_in_raw$new_cases,
+          names.arg=data_in_raw$date,
           col = col5, 
-          ylim = c(0,max(cruise_ship_by_confirmation$new_cases)),
+          ylim = c(0,max(data_in_raw$new_cases)),
           xlab = "Date",
           ylab = "Daily confirmed cases",
           cex.lab = 1.8,
@@ -86,10 +86,10 @@ plotDeathIncidence <- function(data_in_raw, startIntCD)
 {
 
   par(mar = c(4,4,1,1))
-  barplot(cruise_ship_by_confirmation$new_deaths,
-          names.arg=cruise_ship_by_confirmation$date,
+  barplot(data_in_raw$new_deaths,
+          names.arg=data_in_raw$date,
           col = col6,
-          ylim = c(0,max(cruise_ship_by_confirmation$new_deaths)),
+          ylim = c(0,max(data_in_raw$new_deaths)),
           xlab = "Date",
           ylab = "Daily deaths",
           yaxt = 'n',

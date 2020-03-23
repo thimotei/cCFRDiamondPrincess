@@ -1,200 +1,118 @@
-library(bbmle)
-library(plotrix)
-library(fitdistrplus)
-library(padr)
-
-source("R/cCFR_calculation.R")
-
-
-#library(magrittr)
-#library(tidyverse)
-
-cruiseShipData <- read.csv("data/new_data.csv")
-cruiseShipData <- cruiseShipData %>% arrange(date)
-cruiseShipData$date <- as.Date(cruiseShipData$date)
-
-#importing case and death data
-cruise_ship_by_confirmation <- read.csv("data/cruise_ship_diamond_princess_by_confirmation.csv")
-
-# importing the age-stratified scale factors
-cruise_ship_SFs <- read.csv("data/age_scale_factors.csv")
-sfIFR <- cruise_ship_SFs$ifrSF
-
-cruise_ship_by_confirmation$date <- as.Date(cruise_ship_by_confirmation$date)
-
-# age distribution of cruise ship individuals 
-cruise_ship_ages <- c(16,23,347, 428,334,398,923,1015,216,11)
+zMean <- 13
+zMeanLowerLim <- 8.7
+zMeanUpperLim <- 20.9
+zSD <- 12.7
+zMedian <- 9.1
+zMedianLowerLim <- 6.7
+zMedianUpperLim <- 13.7
+propSymptomatic <- 619/309
+propOver70Cases <- 288/619
+propOver70Deaths <- 7/7
 
 
-# Reproducing the distribution from onset-to-death
-# Linton et al. (https://doi.org/10.3390/jcm9020538)
-
-zmeanOD <- 14.5
-zsdOD <- 6.7
-zmedianOD <- 13.2
-muOD <- log(zmedianOD)
-sigmaOD <- sqrt(2*(log(zmeanOD) - muOD))
-
-onset_to_death <- function(x)
+# Lognormal CDF parameterised according to the hospitalisation-to-death 
+# distributions in Linton et al. (2020)
+delayFun <- function(x, mean, median)
 {
-  dlnorm(x, muOD, sigmaOD)
+  mu <- log(median)
+  sigma <- sqrt(2*(log(mean) - mu))
+  dlnorm(x, mu, sigma)
 }
 
-zmeanODT <- 20.2
-zsdODT <- 11.6
-zmedianODT <- 17.1
-muODT <- log(zmedianODT)
-sigmaODT <- sqrt( 2*(log(zmeanODT) - muODT))
-
-onset_to_death_truncated <- function(x)
+delayFunCum <- function(x, mean, median)
 {
-  dlnorm(x, muODT, sigmaODT)
+  mu <- log(median)
+  sigma <- sqrt(2*(log(mean) - mu))
+  plnorm(x, mu, sigma)
 }
 
-zmeanHD <- 8.6
-zmeanLow <- 6.8
-zmeanHigh <- 10.8
-zsdHD <- 6.7
-zmedianHD <- 6.7
-zmedianHDLow <- 5.3
-zmedianHDHigh <- 8.3
-muHD <- log(zmedianHD)
-sigmaHD <- sqrt(2*(log(zmeanHD) - muHD))
+# all combinations of the hospitalisation-to-death distibution - 
+# used to calculate the minimum and maximum CIs. First is the PDF, the rest are CDFs
+hospitalisationToDeathTruncatedPDF  <- function(x) delayFun(x, zMean, zMedian)
+hospitalisationToDeathTruncated     <- function(x) delayFunCum(x, zMean, zMedian)
+hospitalisationToDeathTruncatedLow  <- function(x) delayFunCum(x, zMeanLowerLim, zMedianLowerLim)
+hospitalisationToDeathTruncatedMid1 <- function(x) delayFunCum(x, zMeanLowerLim, zMedianUpperLim)
+hospitalisationToDeathTruncatedMid2 <- function(x) delayFunCum(x, zMeanUpperLim, zMedianLowerLim)
+hospitalisationToDeathTruncatedHigh <- function(x) delayFunCum(x, zMeanUpperLim, zMedianUpperLim)
 
-hospitalisation_to_death <- function(x)
-{
-  dlnorm(x, muHD, sigmaHD)
-}
+# Function to work out corrected CFR
+scale_cfr <- function(data_1_in, delay_fun){
+  case_incidence <- data_1_in$new_cases
+  death_incidence <- data_1_in$new_deaths
+  cumulative_known_t <- 0 # cumulative cases with known outcome at time tt
+  # calculating CDF between each of the days to determine the probability of death on each day
 
-zmeanHDT <- 13
-zmeanHDTLow <- 8.7
-zmeanHDTHigh <- 20.9
-zsdHDT <- 12.7
-zmedianHDT <- 9.1
-zmedianHDTLow <- 6.7
-zmedianHDTHigh <- 13.7
-muHDT <- log(zmedianHDT)
-sigmaHDT <- sqrt(2*(log(zmeanHDT) - muHDT))
-
-hospitalisation_to_death_truncated <- function(x)
-  
-{
-  dlnorm(x, muHDT, sigmaHDT)
-}
-
-
-f_truncrated <- numeric()
-for(i in 0:50)
-{
-  f_truncrated[i+1] <- integrate(hospitalisation_to_death_truncated, i-1, i)
-}
-
-f_truncrated_low <- numeric()
-for(i in 0:50)
-{
-  f_truncrated_low[i+1] <- integrate(hospitalisation_to_death_truncated_low, i-1, i)
-}
-
-
-f_truncrated_mid_one <- numeric()
-for(i in 0:50)
-{
-  f_truncrated_mid_one[i+1] <- integrate(hospitalisation_to_death_truncated_mid_one, i-1, i)
-}
-
-
-f_truncrated_high <- numeric()
-for(i in 0:50)
-{
-  f_truncrated_high[i+1] <- integrate(hospitalisation_to_death_truncated_high, i-1, i)
-}
-
-
-
-nLarge <- 10
-for(i in 1:nLarge)
-{
-  
-  zmeanHDTBS <- runif(1, zmeanHDTLow, zmeanHDTHigh)
-  zmedianHDTBS <- runif(1, zmedianHDTLow, zmedianHDTHigh)
-  
-  hospitalisation_to_death_truncatedBS <- function(x)
-    
-  {
-    dlnorm(x, muHDT, sigmaHDT)
+  for(ii in 1:nrow(data_1_in)){
+    known_i <- 0 # number of cases with known outcome at time ii
+    for(jj in 0:(ii - 1)){
+      known_jj <- case_incidence[ii - jj]*(delay_fun(jj) - delay_fun(jj - 1))
+      known_i <- known_i + known_jj
+    }
+    cumulative_known_t <- cumulative_known_t + known_i # Tally cumulative known
   }
- 
-  fBS <- numeric()
-  for(i in 0:50)
-  {
-    fBS[i + 1] <- integrate(hospitalisation_to_death_truncated, i - 1, i)
-  }
+  # naive CFR value
+  b_tt <- sum(death_incidence)/sum(case_incidence) 
+  # corrected CFR estimator
+  p_tt <- sum(death_incidence)/cumulative_known_t
+  data.frame(nCFR = b_tt, cIFR = p_tt, total_deaths = sum(death_incidence), 
+             cum_known_t = round(cumulative_known_t), total_cases = sum(case_incidence))
+}
+
+
+# Get data
+allDat <- NCoVUtils::get_ecdc_cases()
+allDatDesc <- allDat %>% 
+  dplyr::arrange(country, date) %>% 
+  dplyr::mutate(date = lubridate::ymd(date)) %>% 
+  dplyr::rename(new_cases = cases, new_deaths = deaths) %>%
+  dplyr::select(date, country, new_cases, new_deaths) %>%
+  dplyr::filter(country == "Cases_on_an_international_conveyance_Japan") %>%
+  dplyr::filter(date <= "2020-03-05" & date >= "2020-02-05")
+  
+ageCorrectedDat <- allDatDesc %>% 
+  dplyr::mutate(new_cases = round(new_cases*propOver70Cases),
+                new_deaths = new_deaths*propOver70Deaths)
+
+IFREstimateFun <- function(data, delay_dist){
+  data %>%
+  padr::pad() %>%
+  dplyr::mutate(cum_deaths = sum(new_deaths)) %>%
+  dplyr::filter(cum_deaths > 0) %>%
+  dplyr::select(-cum_deaths) %>%
+  dplyr::do(scale_cfr(., delay_fun = delay_dist)) %>% 
+  dplyr::filter(cum_known_t > 0 & cum_known_t >= total_deaths)  %>%
+  dplyr::mutate(nCFRLowerCI = binom.test(total_deaths, total_cases)$conf.int[1],
+                nCFRupperCI = binom.test(total_deaths, total_cases)$conf.int[2],
+                cIFRLowerCI = binom.test(total_deaths, cum_known_t)$conf.int[1],
+                cIFRUpperCI = binom.test(total_deaths, cum_known_t)$conf.int[2]) %>%
+  dplyr::select(cIFR, cIFRLowerCI, cIFRUpperCI)
+}
+
+
+
+#  all-age estimates
+medianEstimate <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncated)
+lowEstimate    <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedLow) 
+midEstimate    <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedMid2)
+highEstimate   <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedHigh)
+
+allIFREstimates <- dplyr::bind_rows(medianEstimate, lowEstimate, midEstimate, highEstimate) %>% 
+  dplyr::tibble()
+  
+allIFREstimates <-  signif((allIFREstimates$.)* 100, 2)
+
+allCFREstimates <- signif(allIFREstimates*propSymptomatic,2) %>% dplyr::tibble()
+allCFREstimates <- allCFREstimates$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
+
+reportedIFREstimates <- c(allIFREstimates[1,1], min(allIFREstimates$cIFRLowerCI), max(allIFREstimates$cIFRUpperCI))
+reportedCFREstimates <- c(allCFREstimates[1,1], min(allCFREstimates$cCFRLowerCI), max(allCFREstimates$cCFRUpperCI))
    
-}
+# age-corrected estimates
+above70cIFR <- IFREstimateFun(ageCorrectedDat, hospitalisationToDeathTruncated)
+above70cIFR <-  signif((above70cIFR)*100, 2)
 
+above70cCFR <-  signif((above70cIFR)*propSymptomatic, 2)
 
-muHDTLow <- log(zmedianHDTLow)
-sigmaHDTLow <- sqrt(2*(log(zmeanHDTLow) - muHDTLow))
-
-hospitalisation_to_death_truncated_low <- function(x)
-  
-{
-  dlnorm(x, muHDTLow, sigmaHDTLow)
-}
-
-
-muHDTMidOne <- log(zmedianHDTLow)
-sigmaHDTMidOne <- sqrt(2*(log(zmeanHDTHigh) - muHDTMidOne))
-
-hospitalisation_to_death_truncated_mid_one <- function(x)
-  
-{
-  dlnorm(x, muHDTMidOne, sigmaHDTMidOne)
-}
-
-
-#muHDTMidTwo <- log(zmedianHDTHigh)
-#sigmaHDTMidTwo <- sqrt(2*(log(zmeanHDTLow) - muHDTMidTwo))
-
-#hospitalisation_to_death_truncated_mid_two <- function(x)
-  
-#{
-#  dlnorm(x, muHDTMidTwo, sigmaHDTMidTwo)
-#}
-
-muHDTHigh <- log(zmedianHDTHigh)
-sigmaHDTHigh <- sqrt(2*(log(zmeanHDTHigh) - muHDTHigh))
-
-hospitalisation_to_death_truncated_high <- function(x)
-  
-{
-  dlnorm(x,muHDTHigh, sigmaHDTHigh)
-}
-
-
-
-
+## make plot 
 source("R/plotting_functions.R")
-source("R/cCFR_calculation.R")
-
-# running the script for plotting Figure 1 in the main text
-master_plot(cruiseShipData, 1, 1, "topright", hospitalisation_to_death_truncated)
-figure_supplementary <- plotDelaysSupplementary()
-
-# running the code to produce the IFR and CFR estimates quoted in the manuscript
-cIFREstimate <- computecCFRTimeSeries(cruise_ship_by_confirmation, hospitalisation_to_death_truncated_mid_one, f_truncrated_mid_one)
-cCFREstimate <- data.frame(date = cCFREstimate$date, ci_mid = cCFREstimate$ci_mid*sfIFR[1], ci_low = cCFREstimate$ci_low*sfIFR[1], ci_high = cCFREstimate$ci_high*sfIFR[1])
-
-cases_scaled_by_age <- scale_by_age_distribution_cases(cruise_ship_by_confirmation, cruise_ship_SFs, f_truncated)
-deaths_scaled_by_age <- scale_by_age_distribution_deaths(cruise_ship_by_confirmation, cruise_ship_SFs)
-
-ageGroupStratified <- data.frame(date = cruise_ship_by_confirmation$date, new_cases = round(cases_scaled_by_age[,9]), new_deaths = round(deaths_scaled_by_age[,9]))
-
-cCFRAgeGroupStratified <- computecCFRTimeSeries(ageGroupStratified, hospitalisation_to_death)
-cCFRTAgeGroupStratified <- computecCFRTimeSeries(ageGroupStratified, hospitalisation_to_death_truncated)
-
-cIFRAgeGroupStratified <- data.frame(date = cCFRAgeGroupStratified$date, ci_mid = cCFRAgeGroupStratified$ci_mid*sfIFR[1], ci_low = cCFRAgeGroupStratified$ci_low*sfIFR[1], ci_high = cCFRAgeGroupStratified$ci_high*sfIFR[1])
-cIFRTAgeGroupStratified <- data.frame(date = cCFRTAgeGroupStratified$date, ci_mid = cCFRTAgeGroupStratified$ci_mid*sfIFR[1], ci_low = cCFRTAgeGroupStratified$ci_low*sfIFR[1], ci_high = cCFRTAgeGroupStratified$ci_high*sfIFR[1])
-
-
-
+master_plot(allDatDesc, delay_dist = hospitalisationToDeathTruncatedPDF)
