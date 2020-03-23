@@ -6,7 +6,7 @@ zMedian <- 9.1
 zMedianLowerLim <- 6.7
 zMedianUpperLim <- 13.7
 propSymptomatic <- 619/309
-propOver70Cases <- 288/619
+propOver70Cases <- 124/619
 propOver70Deaths <- 7/7
 
 
@@ -98,20 +98,21 @@ highEstimate   <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedHigh)
 
 allIFREstimates <- dplyr::bind_rows(medianEstimate, lowEstimate, midEstimate, highEstimate) %>% 
   dplyr::tibble()
-  
-allIFREstimates <-  signif((allIFREstimates$.)* 100, 2)
 
-allCFREstimates <- signif(allIFREstimates*propSymptomatic,2) %>% dplyr::tibble()
+allIFREstimates <-  allIFREstimates$.
+allIFREstimatesPrecise <-  signif((allIFREstimates)* 100, 2)
+
+allCFREstimates <- signif(allIFREstimates*propSymptomatic*100,2) %>% dplyr::tibble()
 allCFREstimates <- allCFREstimates$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
 
-reportedIFREstimates <- c(allIFREstimates[1,1], min(allIFREstimates$cIFRLowerCI), max(allIFREstimates$cIFRUpperCI))
-reportedCFREstimates <- c(allCFREstimates[1,1], min(allCFREstimates$cCFRLowerCI), max(allCFREstimates$cCFRUpperCI))
+reportedIFREstimates <- dplyr::tibble(cIFR = allIFREstimatesPrecise[1,1], cIFRLowerCI = min(allIFREstimatesPrecise$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesPrecise$cIFRUpperCI))
+reportedCFREstimates <- dplyr::tibble(cCFR = allCFREstimates[1,1], cCFRLowerCI = min(allCFREstimates$cCFRLowerCI), cCFRUpperCI = max(allCFREstimates$cCFRUpperCI))
    
 # age-corrected estimates
 above70cIFR <- IFREstimateFun(ageCorrectedDat, hospitalisationToDeathTruncated)
-above70cIFR <-  signif((above70cIFR)*100, 2)
+above70cIFRPrecise <-  signif((above70cIFR)*100, 2)
 
-above70cCFR <-  signif((above70cIFR)*propSymptomatic, 2)
+above70cCFR <-  signif((above70cIFR)*propSymptomatic*100, 2)
 
 ## make plot 
 source("R/plotting_functions.R")
