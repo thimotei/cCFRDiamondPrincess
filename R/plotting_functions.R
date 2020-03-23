@@ -38,7 +38,6 @@ master_plot <- function(data_in,
 #plotting function to plot the delay distributions
 plotDelays <- function(delay_dist)
 {
-  plot(1)
   par(mar=c(4,4,1,1),
       mgp=c(2,0.6,0))
 
