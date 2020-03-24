@@ -5,7 +5,7 @@ zSD <- 12.7
 zMedian <- 9.1
 zMedianLowerLim <- 6.7
 zMedianUpperLim <- 13.7
-propSymptomatic <- 619/309
+propSymptomatic <- 309/619
 propOver70Cases <- 124/619
 propOver70Deaths <- 7/7
 
