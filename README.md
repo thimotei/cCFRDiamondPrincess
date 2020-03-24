@@ -24,7 +24,7 @@ To estimate the infection and case fatality ratio of COVID-19, using data from p
 
 ## Abstract
 
-Adjusting for delay from confirmation-to-death, we estimated case and infection fatality ratios (CFR, IFR) for COVID-19 on the Diamond Princess ship as 1.2% (0.38–2.7%) and 2.3% (0.75%–5.3%). Comparing deaths onboard with expected deaths based on naive CFR estimates using China data, we estimate IFR and CFR in China to be 0.5% (95% CI: 0.2–1.2%) and 1.1% (95% CI: 0.3–2.4%) respectively.
+Adjusting for delay from confirmation-to-death, we estimated case and infection fatality ratios (IFR, CFR) for COVID-19 on the Diamond Princess ship as 1.2% (0.38–2.7%) and 2.3% (0.75%–5.3%). Comparing deaths onboard with expected deaths based on naive CFR estimates using China data, we estimate IFR and CFR in China to be 0.5% (95% CI: 0.2–1.2%) and 1.1% (95% CI: 0.3–2.4%) respectively.
 
 ## Main text
 
