@@ -1,3 +1,5 @@
+# parameters for the truncated distribution - used for the estimates in the main text
+
 zMean <- 13
 zMeanLowerLim <- 8.7
 zMeanUpperLim <- 20.9
@@ -5,9 +7,23 @@ zSD <- 12.7
 zMedian <- 9.1
 zMedianLowerLim <- 6.7
 zMedianUpperLim <- 13.7
+
+# parameters for the truncated distribution - used for the estimates in the main text
+
+zMeanNonT <- 8.6
+zMeanNonTLowerLim <- 6.8
+zMeanNonTUpperLim <- 10.8
+zSDNonT <- 6.7
+zMedianNonT <- 6.7
+zMedianNonTLowerLim <- 5.3
+zMedianNonTUpperLim <- 8.3
+
+
 propSymptomatic <- 619/309
 propOver70Cases <- 124/619
 propOver70Deaths <- 7/7
+
+
 
 
 # Lognormal CDF parameterised according to the hospitalisation-to-death 
@@ -34,6 +50,13 @@ hospitalisationToDeathTruncatedLow  <- function(x) delayFunCum(x, zMeanLowerLim,
 hospitalisationToDeathTruncatedMid1 <- function(x) delayFunCum(x, zMeanLowerLim, zMedianUpperLim)
 hospitalisationToDeathTruncatedMid2 <- function(x) delayFunCum(x, zMeanUpperLim, zMedianLowerLim)
 hospitalisationToDeathTruncatedHigh <- function(x) delayFunCum(x, zMeanUpperLim, zMedianUpperLim)
+
+hospitalisationToDeath     <- function(x) delayFunCum(x, zMeanNonT, zMedianNonT)
+hospitalisationToDeathLow  <- function(x) delayFunCum(x, zMeanNonTLowerLim, zMedianNonTLowerLim)
+hospitalisationToDeathMid1 <- function(x) delayFunCum(x, zMeanNonTLowerLim, zMedianNonTUpperLim)
+hospitalisationToDeathMid2 <- function(x) delayFunCum(x, zMeanNonTUpperLim, zMedianNonTLowerLim)
+hospitalisationToDeathHigh <- function(x) delayFunCum(x, zMeanNonTUpperLim, zMedianNonTUpperLim)
+
 
 # Function to work out corrected CFR
 scale_cfr <- function(data_1_in, delay_fun){
@@ -103,40 +126,7 @@ IFREstimateFun <- function(data, delay_dist){
   dplyr::select(cIFR, cIFRLowerCI, cIFRUpperCI)
 }
 
-IFREstimateFun(newData, hospitalisationToDeathTruncated)
-
-#  all-age estimates
-medianEstimate <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncated)
-lowEstimate    <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedLow) 
-midEstimate    <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedMid2)
-highEstimate   <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedHigh)
-
-allIFREstimates <- dplyr::bind_rows(medianEstimate, lowEstimate, midEstimate, highEstimate) %>% 
-  dplyr::tibble()
-
-allIFREstimates <-  allIFREstimates$.
-allIFREstimatesPrecise <-  signif((allIFREstimates)* 100, 2)
-
-allCFREstimates <- signif(allIFREstimates*propSymptomatic*100,2) %>% dplyr::tibble()
-allCFREstimates <- allCFREstimates$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
-
-reportedIFREstimates <- dplyr::tibble(cIFR = allIFREstimatesPrecise[1,1], cIFRLowerCI = min(allIFREstimatesPrecise$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesPrecise$cIFRUpperCI))
-reportedCFREstimates <- dplyr::tibble(cCFR = allCFREstimates[1,1], cCFRLowerCI = min(allCFREstimates$cCFRLowerCI), cCFRUpperCI = max(allCFREstimates$cCFRUpperCI))
-   
-# age-corrected estimates
-above70cIFR <- IFREstimateFun(ageCorrectedDat, hospitalisationToDeathTruncated)
-above70cIFRPrecise <-  signif((above70cIFR)*100, 2)
-
-above70cCFR <-  signif((above70cIFR)*propSymptomatic*100, 2)
-
-## make plot 
-source("R/plotting_functions.R")
-plot(1)
-#master_plot(allDatDesc, delay_dist = hospitalisationToDeathTruncatedPDF)
-master_plot(newData, delay_dist = hospitalisationToDeathTruncatedPDF)
-
-# new data analysis
-
+# analysis for the main text - up to the 5th March and corrected for
 IFREstimateFun(newData, hospitalisationToDeathTruncated)
 
 #  all-age estimates
@@ -161,4 +151,93 @@ reportedCFREstimatesNew <- dplyr::tibble(cCFR = allCFREstimatesNew[1,1], cCFRLow
 above70cIFRNew <- IFREstimateFun(ageCorrectedDatNew, hospitalisationToDeathTruncated)
 above70cIFRNew <-  signif((above70cIFRNew)*100, 2)
 
-above70cCFR <-  signif((above70cIFRNew)*propSymptomatic, 2)
+reportedcIFREstimatesAgeNew <-  dplyr::tibble(cIFR = above70cIFRNew[1,1], 
+                                          cIFRLowerCI = above70cIFRNew[1,2],
+                                          cIFRUpperCI = above70cIFRNew[1,3])
+
+reportedcCFREstimatesAgeNew <-  signif(dplyr::tibble(cIFR = above70cIFRNew[1,1]*propSymptomatic, 
+                                          cIFRLowerCI = above70cIFRNew[1,2]*propSymptomatic,
+                                          cIFRUpperCI = above70cIFRNew[1,3]*propSymptomatic),2)
+
+reportedcIFREstimatesNew
+reportedcCFREstimatesNew
+reportedcIFREstimatesAgeNew
+reportedcCFREstimatesAgeNew
+
+## make plot 
+source("R/plotting_functions.R")
+plot(1)
+master_plot(newData, delay_dist = hospitalisationToDeathTruncatedPDF)
+
+#  estimates using all of the data - for the SUPPLEMENTARY MATERIAL
+medianEstimate <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncated)
+lowEstimate    <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedLow) 
+midEstimate    <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedMid2)
+highEstimate   <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncatedHigh)
+
+allIFREstimates <- dplyr::bind_rows(medianEstimate, lowEstimate, midEstimate, highEstimate) %>% 
+  dplyr::tibble()
+
+allIFREstimates <-  allIFREstimates$.
+allIFREstimatesPrecise <-  signif((allIFREstimates)* 100, 2)
+
+allCFREstimates <- signif(allIFREstimates*propSymptomatic*100,2) %>% dplyr::tibble()
+allCFREstimates <- allCFREstimates$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
+
+reportedIFREstimatesSupp <- dplyr::tibble(cIFR = allIFREstimatesPrecise[1,1], cIFRLowerCI = min(allIFREstimatesPrecise$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesPrecise$cIFRUpperCI))
+reportedCFREstimatesSupp <- dplyr::tibble(cCFR = allCFREstimates[1,1], cCFRLowerCI = min(allCFREstimates$cCFRLowerCI), cCFRUpperCI = max(allCFREstimates$cCFRUpperCI))
+
+# age-corrected estimates
+above70cIFR <- IFREstimateFun(ageCorrectedDat, hospitalisationToDeathTruncated)
+above70cIFRPrecise <-  signif((above70cIFR)*100, 2)
+
+
+reportedcIFREstimatesSupp <-  signif(dplyr::tibble(cIFR = above70cIFR[1,1]*100, 
+                                           cIFRLowerCI = above70cIFR[1,2]*100,
+                                           cIFRUpperCI = above70cIFR[1,3]*100),2)
+
+reportedcCFREstimatesSupp <-  signif(dplyr::tibble(cIFR = above70cIFR[1,1]*propSymptomatic*100, 
+                                                  cIFRLowerCI = above70cIFR[1,2]*propSymptomatic*100,
+                                                  cIFRUpperCI = above70cIFR[1,3]*propSymptomatic*100),2)
+
+reportedIFREstimatesSupp
+reportedCFREstimatesSupp
+reportedcIFREstimatesSupp
+reportedcCFREstimatesSupp
+
+#  estimates using all of the data - non-truncated distribution - for the SUPPLEMENTARY MATERIAL
+medianEstimateNonT <- IFREstimateFun(allDatDesc,hospitalisationToDeath)
+lowEstimateNonT    <- IFREstimateFun(allDatDesc,hospitalisationToDeathLow) 
+midEstimateNonT    <- IFREstimateFun(allDatDesc,hospitalisationToDeathMid2)
+highEstimateNonT   <- IFREstimateFun(allDatDesc,hospitalisationToDeathHigh)
+
+allIFREstimatesNonT <- dplyr::bind_rows(medianEstimateNonT, lowEstimateNonT, midEstimateNonT, highEstimateNonT) %>% 
+  dplyr::tibble()
+
+allIFREstimatesNonT <-  allIFREstimatesNonT$.
+allIFREstimatesPreciseNonT <-  signif((allIFREstimatesNonT)* 100, 2)
+
+allCFREstimatesNonT <- signif(allIFREstimatesNonT*propSymptomatic*100,2) %>% dplyr::tibble()
+allCFREstimatesNonT <- allCFREstimatesNonT$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
+
+reportedIFREstimatesSuppNonT <- dplyr::tibble(cIFR = allIFREstimatesPreciseNonT[1,1], cIFRLowerCI = min(allIFREstimatesPreciseNonT$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesPreciseNonT$cIFRUpperCI))
+reportedCFREstimatesSuppNonT <- dplyr::tibble(cCFR = allCFREstimatesNonT[1,1], cCFRLowerCI = min(allCFREstimatesNonT$cCFRLowerCI), cCFRUpperCI = max(allCFREstimatesNonT$cCFRUpperCI))
+
+# age-corrected estimates
+above70cIFRNonT <- IFREstimateFun(ageCorrectedDat, hospitalisationToDeath)
+above70cIFRPreciseNonT <-  signif((above70cIFRNonT)*100, 2)
+
+
+reportedcIFREstimatesSuppNonT <-  signif(dplyr::tibble(cIFR = above70cIFRNonT[1,1]*100, 
+                                                   cIFRLowerCI = above70cIFRNonT[1,2]*100,
+                                                   cIFRUpperCI = above70cIFRNonT[1,3]*100),2)
+
+reportedcCFREstimatesSuppNonT <-  signif(dplyr::tibble(cIFR = above70cIFRNonT[1,1]*propSymptomatic*100, 
+                                                   cIFRLowerCI = above70cIFRNonT[1,2]*propSymptomatic*100,
+                                                   cIFRUpperCI = above70cIFRNonT[1,3]*propSymptomatic*100),2)
+
+reportedIFREstimatesSuppNonT
+reportedCFREstimatesSuppNonT
+reportedcIFREstimatesSuppNonT
+reportedcCFREstimatesSuppNonT
+
