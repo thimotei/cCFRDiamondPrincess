@@ -99,7 +99,7 @@ ageCorrectedDat <- allDatDesc %>%
 
 
 # updated data - CURRENT
-newData <- read.csv("data/up_to_date.csv")
+newData <- read.csv("data/up_to_date_reduced.csv")
 newData$date <- as.Date(newData$date)
 newData <- subset(newData,date <= "2020-03-05" & date >= "2020-02-05")
 
@@ -144,8 +144,8 @@ allIFREstimatesNewPrecise <-  signif((allIFREstimates)*100, 2)
 allCFREstimatesNew <- signif(allIFREstimatesNew*propSymptomatic*100,2) %>% dplyr::tibble()
 allCFREstimatesNew <- allCFREstimatesNew$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
 
-reportedIFREstimatesNew <- dplyr::tibble(cIFR = allIFREstimatesNewPrecise[1,1], cIFRLowerCI = min(allIFREstimatesNewPrecise$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesNewPrecise$cIFRUpperCI))
-reportedCFREstimatesNew <- dplyr::tibble(cCFR = allCFREstimatesNew[1,1], cCFRLowerCI = min(allCFREstimatesNew$cCFRLowerCI), cCFRUpperCI = max(allCFREstimatesNew$cCFRUpperCI))
+reportedcIFREstimatesNew <- dplyr::tibble(cIFR = allIFREstimatesNewPrecise[1,1], cIFRLowerCI = min(allIFREstimatesNewPrecise$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesNewPrecise$cIFRUpperCI))
+reportedcCFREstimatesNew <- dplyr::tibble(cCFR = allCFREstimatesNew[1,1], cCFRLowerCI = min(allCFREstimatesNew$cCFRLowerCI), cCFRUpperCI = max(allCFREstimatesNew$cCFRUpperCI))
 
 # age-corrected estimates
 above70cIFRNew <- IFREstimateFun(ageCorrectedDatNew, hospitalisationToDeathTruncated)
