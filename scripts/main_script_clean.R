@@ -59,7 +59,7 @@ scale_cfr <- function(data_1_in, delay_fun){
 }
 
 
-# Get data
+# Get data - DEPRACTED
 allDat <- NCoVUtils::get_ecdc_cases()
 allDatDesc <- allDat %>% 
   dplyr::arrange(country, date) %>% 
@@ -68,10 +68,25 @@ allDatDesc <- allDat %>%
   dplyr::select(date, country, new_cases, new_deaths) %>%
   dplyr::filter(country == "Cases_on_an_international_conveyance_Japan") %>%
   dplyr::filter(date <= "2020-03-05" & date >= "2020-02-05")
-  
+
+# age correction on old data - DEPRACTED 
 ageCorrectedDat <- allDatDesc %>% 
   dplyr::mutate(new_cases = round(new_cases*propOver70Cases),
                 new_deaths = new_deaths*propOver70Deaths)
+
+
+# updated data - CURRENT
+newData <- read.csv("data/up_to_date.csv")
+newData$date <- as.Date(newData$date)
+newData <- subset(newData,date <= "2020-03-05" & date >= "2020-02-05")
+
+# age correction on updated data - CURRENT
+ageCorrectedDatNew <- newData %>% 
+  dplyr::mutate(new_cases = round(new_cases*propOver70Cases),
+                new_deaths = new_deaths*propOver70Deaths)
+
+
+
 
 IFREstimateFun <- function(data, delay_dist){
   data %>%
@@ -88,7 +103,7 @@ IFREstimateFun <- function(data, delay_dist){
   dplyr::select(cIFR, cIFRLowerCI, cIFRUpperCI)
 }
 
-
+IFREstimateFun(newData, hospitalisationToDeathTruncated)
 
 #  all-age estimates
 medianEstimate <- IFREstimateFun(allDatDesc,hospitalisationToDeathTruncated)
@@ -118,3 +133,32 @@ above70cCFR <-  signif((above70cIFR)*propSymptomatic*100, 2)
 source("R/plotting_functions.R")
 plot(1)
 master_plot(allDatDesc, delay_dist = hospitalisationToDeathTruncatedPDF)
+master_plot(newData, delay_dist = hospitalisationToDeathTruncatedPDF)
+
+# new data analysis
+
+IFREstimateFun(newData, hospitalisationToDeathTruncated)
+
+#  all-age estimates
+medianEstimateNew <- IFREstimateFun(newData,hospitalisationToDeathTruncated)
+lowEstimateNew    <- IFREstimateFun(newData,hospitalisationToDeathTruncatedLow) 
+midEstimateNew    <- IFREstimateFun(newData,hospitalisationToDeathTruncatedMid2)
+highEstimateNew   <- IFREstimateFun(newData,hospitalisationToDeathTruncatedHigh)
+
+allIFREstimatesNew <- dplyr::bind_rows(medianEstimateNew, lowEstimateNew, midEstimateNew, highEstimateNew) %>% 
+  dplyr::tibble()
+
+allIFREstimatesNew <-  allIFREstimatesNew$.
+allIFREstimatesNewPrecise <-  signif((allIFREstimates)*100, 2)
+
+allCFREstimatesNew <- signif(allIFREstimatesNew*propSymptomatic*100,2) %>% dplyr::tibble()
+allCFREstimatesNew <- allCFREstimatesNew$. %>% dplyr::rename(cCFR = cIFR, cCFRLowerCI = cIFRLowerCI, cCFRUpperCI = cIFRUpperCI)
+
+reportedIFREstimatesNew <- dplyr::tibble(cIFR = allIFREstimatesNewPrecise[1,1], cIFRLowerCI = min(allIFREstimatesNewPrecise$cIFRLowerCI), cIFRUpperCI = max(allIFREstimatesNewPrecise$cIFRUpperCI))
+reportedCFREstimatesNew <- dplyr::tibble(cCFR = allCFREstimatesNew[1,1], cCFRLowerCI = min(allCFREstimatesNew$cCFRLowerCI), cCFRUpperCI = max(allCFREstimatesNew$cCFRUpperCI))
+
+# age-corrected estimates
+above70cIFRNew <- IFREstimateFun(ageCorrectedDatNew, hospitalisationToDeathTruncated)
+above70cIFRNew <-  signif((above70cIFRNew)*100, 2)
+
+above70cCFR <-  signif((above70cIFRNew)*propSymptomatic, 2)
