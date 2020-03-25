@@ -132,7 +132,7 @@ above70cCFR <-  signif((above70cIFR)*propSymptomatic*100, 2)
 ## make plot 
 source("R/plotting_functions.R")
 plot(1)
-master_plot(allDatDesc, delay_dist = hospitalisationToDeathTruncatedPDF)
+#master_plot(allDatDesc, delay_dist = hospitalisationToDeathTruncatedPDF)
 master_plot(newData, delay_dist = hospitalisationToDeathTruncatedPDF)
 
 # new data analysis
